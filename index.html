@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FitTravel — Premium Fitness + Travel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{--navy:#081028;--card:#ffffff;--gold:#d4a017;--accent:#0b7cff;--muted:#6b7280;--soft:#f6f8fa}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:linear-gradient(180deg,#f7f8fb,#fbfbfd);color:var(--navy)}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;position:sticky;top:0;backdrop-filter:blur(6px);background:rgba(255,255,255,0.6);z-index:60}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;color:white;font-weight:800}
+    nav{display:flex;gap:14px;align-items:center}
+    nav a{color:var(--navy);text-decoration:none;font-weight:600;padding:8px 12px;border-radius:10px}
+    .actions{display:flex;gap:10px}
+    .btn{padding:10px 16px;border-radius:12px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{padding:10px 16px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--gold));color:white}
+    .btn-ghost{padding:10px 16px;border-radius:12px;background:transparent;border:1px solid rgba(10,20,40,0.06)}
+
+    .hero{display:grid;grid-template-columns:1fr 480px;gap:30px;align-items:center;padding:56px 28px}
+    .eyebrow{display:inline-block;background:linear-gradient(90deg,#e9f2ff,#fff7e6);color:var(--navy);padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px}
+    h1{font-size:48px;line-height:1.02;margin:18px 0 12px;font-weight:900}
+    p.lead{color:var(--muted);font-size:17px;max-width:700px}
+
+    .booking-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(10,20,40,0.06);border:1px solid rgba(11,22,40,0.04)}
+    .tabs{display:flex;gap:8px;margin-bottom:14px}
+    .tab{padding:10px 14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);font-weight:700;cursor:pointer}
+    .tab.active{box-shadow:0 8px 20px rgba(10,20,40,0.06);transform:translateY(-4px)}
+    .input{padding:12px;border-radius:12px;border:1px solid #eef2f7;flex:1}
+
+    .container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:28px;padding:20px}
+    .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 12px 30px rgba(10,20,40,0.04);border:1px solid rgba(10,20,40,0.03)}
+
+    .featured{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+    .feature-image{border-radius:14px;overflow:hidden;height:340px}
+    .feature-content{padding:12px}
+    .pill{background:#f3f6ff;padding:8px 12px;border-radius:999px;font-weight:700;color:var(--muted)}
+    .price{color:var(--accent);font-weight:800;font-size:20px}
+
+    .journeys-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+    .journey{border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#fff,#fbfcff);transition:transform .2s;cursor:pointer}
+    .journey:hover{transform:translateY(-8px)}
+    .journey img{height:180px;width:100%;object-fit:cover}
+    .journey-body{padding:12px}
+
+    .testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+    .test{padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fcfff6)}
+
+    .features-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .feature-compact{padding:18px;border-radius:12px;text-align:center}
+
+    #map{height:240px;border-radius:10px}
+
+    .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .gallery-grid img{width:100%;height:120px;object-fit:cover;border-radius:8px;cursor:pointer}
+
+    footer{padding:20px;text-align:center;color:var(--muted)}
+
+    @media(max-width:1100px){.container{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.journeys-grid{grid-template-columns:repeat(2,1fr)}.testimonials{grid-template-columns:1fr}.featured{grid-template-columns:1fr}}
+    @media(max-width:620px){.journeys-grid{grid-template-columns:1fr}.gallery-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">FT</div>
+    <div>
+      <div style="font-weight:800">FitTravel</div>
+      <div style="font-size:12px;color:var(--muted)">Premium Adventures • Navy & Gold</div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#dest">Destinations</a>
+    <a href="#trips">Trips</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="actions">
+    <button class="btn btn-ghost" id="loginBtn">Sign In</button>
+    <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
+  </div>
+</header>
+
+<section class="hero" id="home">
+  <div>
+    <div class="eyebrow">Trusted by explorers & athletes</div>
+    <h1>Where Every Trip Becomes a Story</h1>
+    <p class="lead">Handpicked premium journeys that blend world-class travel with structured fitness — elite coaches, memorable routes, and curated recovery. Travel better, train smarter.</p>
+    <div style="margin-top:22px;display:flex;gap:12px">
+      <button class="btn btn-primary" id="bookTripBtn">Book a Premium Trip</button>
+      <button class="btn btn-ghost" id="openTrackerBtn">Open Tracker</button>
+    </div>
+
+    <div style="margin-top:18px" class="gallery-grid" id="gallery">
+      <!-- images injected by JS (high-res Unsplash, lazy-loaded) -->
+    </div>
+  </div>
+
+  <div>
+    <div class="booking-card" style="width:100%">
+      <div class="tabs" id="bookingTabs">
+        <div class="tab active" data-tab="trips">Trips</div>
+        <div class="tab" data-tab="retreats">Retreats</div>
+        <div class="tab" data-tab="coaching">Coaching</div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-direction:column">
+        <div style="display:flex;gap:12px">
+          <input class="input" id="from" placeholder="From (city)" />
+          <input class="input" id="to" placeholder="Destination" />
+        </div>
+        <div style="display:flex;gap:12px">
+          <div style="position:relative;flex:1"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.6">📅</span><input class="input" id="start" type="text" placeholder="dd - mm - yyyy" style="padding-left:36px"></div>
+          <div style="position:relative;flex:1"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.6">📅</span><input class="input" id="end" type="text" placeholder="dd - mm - yyyy" style="padding-left:36px"></div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <select class="input" id="package">
+            <option>Himalayan Power Trek</option>
+            <option>Zen Beach Yoga</option>
+            <option>European Cycle Tour</option>
+          </select>
+          <button class="btn btn-primary" id="searchBtn">Search & Book</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-ghost" id="downloadBtn">Download Bookings</button>
+          <button class="btn btn-ghost" id="viewBookingsBtn">View Bookings</button>
+        </div>
+
+        <div id="searchResults" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div>
+    <section class="card featured" id="trips">
+      <div class="feature-image"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1400&auto=format&fit=crop" style="width:100%;height:100%;object-fit:cover" loading="lazy"></div>
+      <div class="feature-content">
+        <div style="color:var(--muted);font-weight:700">Santorini, Greece • Premium</div>
+        <h2 style="margin:8px 0 6px;font-size:28px">Magical Sunsets & White Architecture</h2>
+        <p style="color:var(--muted);margin-bottom:14px">Experience breathtaking sunsets, guided runs, yoga & curated nutrition.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div class="pill">Luxury Resorts</div>
+          <div class="pill">Curated Nutrition</div>
+          <div class="pill">Small Cohorts</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:18px">
+          <div class="price">From <span style="font-size:20px;color:var(--navy)">$1,299</span> /person</div>
+          <button class="explore btn-primary" style="padding:10px 14px;border-radius:10px;border:none" id="exploreNowBtn">Explore Now →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h3 style="margin:0 0 12px;font-size:20px;color:var(--navy)">Signature Journeys</h3>
+      <div class="journeys-grid" id="journeys">
+        <!-- injected by JS -->
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h3 style="margin:0 0 12px">Real Stories, Real Experiences</h3>
+      <div class="testimonials">
+        <div class="test">"Next-level coaching + breathtaking routes. I came back stronger." — Asha</div>
+        <div class="test">"The perfect balance of travel and training." — Tom</div>
+        <div class="test">"Luxury lodgings and elite coaches. Highly recommend." — Priya</div>
+      </div>
+    </section>
+  </div>
+
+  <aside>
+    <div class="card tracker" id="track">
+      <h3 style="margin:0 0 10px">Fitness Tracker</h3>
+      <input id="wName" placeholder="Workout (e.g., Run)" class="input" />
+      <div style="display:flex;gap:8px;margin-top:8px"><input id="wMins" type="number" placeholder="Minutes" class="input" /><select id="wType" class="input"><option>Cardio</option><option>Strength</option><option>Yoga</option></select></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" id="saveLogBtn">Save</button><button class="btn btn-ghost" id="clearLogsBtn">Clear</button></div>
+      <div class="log" id="logList" style="margin-top:12px;max-height:170px;overflow:auto"></div>
+      <h4 style="margin-top:14px">Weekly Summary</h4>
+      <canvas id="chart" style="width:100%;height:150px;margin-top:8px"></canvas>
+    </div>
+
+    <div id="book" class="card" style="margin-top:18px;background:linear-gradient(135deg,#0f1724,#0b2741);color:white">
+      <h3 style="margin:0 0 10px">Book Your Premium Journey</h3>
+      <input id="name2" placeholder="Full name" style="width:100%;padding:12px;border-radius:10px;border:none;margin-top:8px" />
+      <input id="email2" placeholder="Email" style="width:100%;padding:12px;border-radius:10px;border:none;margin-top:8px" />
+      <select id="trip2" style="width:100%;padding:12px;border-radius:10px;border:none;margin-top:8px"></select>
+      <input id="date2" type="date" style="width:100%;padding:12px;border-radius:10px;border:none;margin-top:8px" />
+      <button class="btn btn-primary" style="width:100%;margin-top:12px;background:linear-gradient(90deg,var(--gold),#ffd27a);color:var(--navy)" id="confirmBookingBtn">Confirm Booking</button>
+      <div id="bookingMsg" style="margin-top:10px;color:#fff;opacity:0.9"></div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3 style="margin:0 0 10px">Map</h3>
+      <div id="map"></div>
+    </div>
+  </aside>
+</main>
+
+<footer>© <span id="year"></span> FitTravel — Ultra Premium • Navy & Gold</footer>
+
+<!-- Image lightbox -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:999;padding:20px">
+  <button id="lbClose" style="position:absolute;top:18px;right:20px;padding:10px 12px;border-radius:8px;border:none;background:#fff">Close</button>
+  <img id="lbImg" src="" style="max-width:1200px;max-height:90%;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,0.6)" />
+</div>
+
+<!-- Bookings modal -->
+<div id="bookingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:999;padding:20px">
+  <div style="background:white;padding:18px;border-radius:10px;max-width:800px;width:100%;max-height:80%;overflow:auto">
+    <h3>Saved Bookings</h3>
+    <div id="bookingsList" style="margin-top:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id="closeBookingsModal" class="btn btn-ghost">Close</button><button id="downloadInModal" class="btn btn-primary">Download</button></div>
+  </div>
+</div>
+
+<script>
+  // --- assets (high quality Unsplash images) ---
+  const galleryImages = [
+    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?q=80&w=1400&auto=format&fit=crop'
+  ];
+
+  // inject gallery
+  const gallery = document.getElementById('gallery');
+  galleryImages.forEach(src => {
+    const img = document.createElement('img'); img.src = src; img.loading = 'lazy'; gallery.appendChild(img);
+    img.addEventListener('click', ()=>{ document.getElementById('lbImg').src = src; document.getElementById('lightbox').style.display='flex'; });
+  });
+  document.getElementById('lbClose').onclick = ()=> document.getElementById('lightbox').style.display='none';
+
+  // journeys (enhanced, clickable, dynamic)
+  const journeysData = [
+    {id:1,title:'Himalayan Power Trek',desc:'Altitude strength + endurance. 7 days.',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop',price:2499,mrp:3199},
+    {id:2,title:'Tropical Strength Camp',desc:'Beach HIIT + conditioning. 5 days.',img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',price:1799,mrp:2199},
+    {id:3,title:'Zen Beach Yoga',desc:'Sunrise mobility & breathwork. 6 days.',img:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1200&auto=format&fit=crop',price:1999,mrp:2599},
+    {id:4,title:'European Cycle Tour',desc:'Endurance + scenic routes. 10 days.',img:'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1200&auto=format&fit=crop',price:2999,mrp:3599},
+    {id:5,title:'Desert Wellness Camp',desc:'Mindfulness + stamina. 4 days.',img:'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?q=80&w=1200&auto=format&fit=crop',price:1299,mrp:1599},
+    {id:6,title:'Forest Trail Escape',desc:'Nature runs & recovery. 3 days.',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop',price:999,mrp:1299}
+  ];
+
+  function renderJourneys(){
+    const el = document.getElementById('journeys'); el.innerHTML=''; journeysData.forEach(j=>{
+      const d = document.createElement('div'); d.className='journey'; d.innerHTML = `<img src="${j.img}" loading="lazy"><div class="journey-body"><h4>${j.title}</h4><p>${j.desc}</p><div style='display:flex;justify-content:space-between;align-items:center;margin-top:8px'><div style="font-weight:800;color:var(--accent)">₹${j.price}</div><div style="font-size:12px;color:var(--muted);text-decoration:line-through">MRP ₹${j.mrp}</div></div></div>`;
+      d.onclick = ()=> openJourney(j);
+      el.appendChild(d);
+    })
+  }
+
+  function openJourney(j){
+    // quick booking modal (native) — user-friendly and functional
+    const confirmBook = confirm(`Book ${j.title} for ₹${j.price}?`);
+    if(!confirmBook) return;
+    const name = prompt('Your full name'); if(!name) return alert('Booking canceled');
+    const email = prompt('Email for confirmation'); if(!email) return alert('Booking canceled');
+    const bookings = JSON.parse(localStorage.getItem('ft_bookings')||'[]'); bookings.push({id:j.id,title:j.title,price:j.price,mrp:j.mrp,name,email,date:new Date().toISOString()}); localStorage.setItem('ft_bookings',JSON.stringify(bookings)); alert('Booking saved locally — you can download it from the bookings section.');
+  }
+
+  // search button behaviour: returns matches and lets user book
+  document.getElementById('searchBtn').addEventListener('click', ()=>{
+    const to = document.getElementById('to').value.trim().toLowerCase(); const pkg = document.getElementById('package').value;
+    const matches = journeysData.filter(j=> j.title.toLowerCase().includes(pkg.toLowerCase()) || (to && j.title.toLowerCase().includes(to)) );
+    const results = document.getElementById('searchResults'); results.innerHTML='';
+    (matches.length?matches:journeysData).slice(0,3).forEach(m=>{
+      const r = document.createElement('div'); r.style.padding='10px'; r.style.borderRadius='8px'; r.style.marginTop='8px'; r.style.background='#f7f9fc'; r.innerHTML = `<div style='display:flex;justify-content:space-between;align-items:center'><div><b>${m.title}</b><div style='font-size:13px;color:var(--muted)'>${m.desc}</div></div><div style='text-align:right'><div style='font-weight:800'>₹${m.price}</div><button class='btn btn-primary' style='margin-top:8px' data-id='${m.id}'>Book</button></div></div>`;
+      // attach event listener for the generated Book button
+      r.querySelector('button').addEventListener('click', ()=> quickBook(m.id));
+      results.appendChild(r);
+    })
+  });
+
+  function quickBook(id){ const j = journeysData.find(x=>x.id===id); openJourney(j); }
+
+  // populate booking select & load bookings
+  function populateTripSelect(){ const sel=document.getElementById('trip2'); sel.innerHTML=''; journeysData.forEach(j=>{ const o=document.createElement('option'); o.value=j.title; o.textContent=j.title; sel.appendChild(o); }) }
+
+  function bookTrip(){ const n=document.getElementById('name2').value.trim(); const e=document.getElementById('email2').value.trim(); const t=document.getElementById('trip2').value; const d=document.getElementById('date2').value; const msg=document.getElementById('bookingMsg'); if(!n||!e||!d){ msg.textContent='Please fill all fields'; return;} const bookings=JSON.parse(localStorage.getItem('ft_bookings')||'[]'); bookings.push({name:n,email:e,trip:t,date:d,ts:Date.now()}); localStorage.setItem('ft_bookings',JSON.stringify(bookings)); msg.textContent='Booking confirmed! Saved locally.'; document.getElementById('name2').value=''; document.getElementById('email2').value=''; document.getElementById('date2').value=''; }
+
+  // bookings helpers
+  function getBookings(){ return JSON.parse(localStorage.getItem('ft_bookings')||'[]'); }
+  function renderBookingsModal(){ const list=document.getElementById('bookingsList'); const bookings=getBookings(); if(!bookings.length) list.innerHTML='<div style="color:var(--muted)">No bookings yet</div>'; else list.innerHTML=bookings.map(b=>`<div style="padding:10px;border-radius:8px;border:1px solid #f0f2f5;margin-bottom:8px"><div style='display:flex;justify-content:space-between'><div><b>${b.trip||b.title}</b><div style='font-size:12px;color:var(--muted)'>${b.name||''} • ${b.email||''}</div></div><div style='text-align:right'>${b.date?b.date:new Date(b.date).toLocaleDateString()}<div style='font-size:13px;color:var(--muted)'>₹${b.price||''}</div></div></div></div>`).join(''); }
+
+  function downloadBookings(){ const data=JSON.stringify(getBookings(),null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='fittravel_bookings.json'; a.click(); URL.revokeObjectURL(url); }
+
+  // fitness tracker (same improved logic)
+  function loadLogs(){const logs=JSON.parse(localStorage.getItem('ft_logs')||'[]');const list=document.getElementById('logList');if(!logs.length) list.innerHTML='<div style="color:var(--muted)">No workouts saved</div>'; else list.innerHTML=logs.map((l,i)=>`<div style="padding:8px;border-radius:8px;background:#f3f6ff;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">${new Date(l.t).toLocaleString()} • <b>${l.name}</b> (${l.type}) — ${l.mins} min <button data-idx='${i}' style='margin-left:8px;padding:6px 8px;border-radius:8px;border:none;background:transparent;cursor:pointer' class='remove-log'>Remove</button></div>`).join(''); 
+    // attach remove handlers
+    Array.from(document.querySelectorAll('.remove-log')).forEach(btn=>btn.addEventListener('click', ()=>{ const idx=btn.getAttribute('data-idx'); const arr=JSON.parse(localStorage.getItem('ft_logs')||'[]'); arr.splice(idx,1); localStorage.setItem('ft_logs',JSON.stringify(arr)); loadLogs(); }));
+    updateChart(logs);}  
+  function addLog(){const name=document.getElementById('wName').value.trim();const mins=parseInt(document.getElementById('wMins').value);const type=document.getElementById('wType').value; if(!name||!mins){alert('Enter details');return;} const logs=JSON.parse(localStorage.getItem('ft_logs')||'[]'); logs.push({t:Date.now(),name,mins,type}); localStorage.setItem('ft_logs',JSON.stringify(logs)); document.getElementById('wName').value=''; document.getElementById('wMins').value=''; loadLogs(); }
+  function clearLogs(){ if(confirm('Clear workouts?')){ localStorage.removeItem('ft_logs'); loadLogs(); }}
+
+  const ctx=document.getElementById('chart'); const chart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Minutes',data:[],backgroundColor:'rgba(212,160,23,0.9)',borderRadius:6}]},options:{scales:{y:{beginAtZero:true}}}});
+  function updateChart(logs){ const days=Array.from({length:7}).map((_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); return d.toLocaleDateString();}); const sums=Array(7).fill(0); logs.forEach(l=>{ const d=new Date(l.t); d.setHours(0,0,0,0); const idx=days.findIndex(dd=>new Date(dd).toDateString()===d.toDateString()); if(idx>=0) sums[idx]+=l.mins; }); chart.data.labels=days; chart.data.datasets[0].data=sums; chart.update(); }
+
+  // Map (Leaflet)
+  const map = L.map('map').setView([20.5937,78.9629],4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:''}).addTo(map);
+  const hubs=[{name:'Himalayas',coords:[28.2,84.0]},{name:'Santorini',coords:[36.3932,25.4615]},{name:'Goa',coords:[15.5,73.8]},{name:'Alps',coords:[46.8,9.6]}]; hubs.forEach(h=>L.marker(h.coords).addTo(map).bindPopup(`<b>${h.name}</b>`));
+
+  // login button (local-only)
+  document.getElementById('loginBtn').addEventListener('click',()=>{ const email=prompt('Enter email to sign in (local only):'); if(!email) return; localStorage.setItem('ft_user', JSON.stringify({email})); alert('Signed in as '+email); });
+
+  // Get Started / navigation buttons
+  document.getElementById('getStartedBtn').addEventListener('click', ()=>document.getElementById('book').scrollIntoView({behavior:'smooth'}));
+  document.getElementById('bookTripBtn').addEventListener('click', ()=>document.getElementById('trips').scrollIntoView({behavior:'smooth'}));
+  document.getElementById('openTrackerBtn').addEventListener('click', ()=>document.getElementById('track').scrollIntoView({behavior:'smooth'}));
+  document.getElementById('exploreNowBtn').addEventListener('click', ()=> openJourney(journeysData[0]) );
+
+  // booking confirm (aside)
+  document.getElementById('confirmBookingBtn').addEventListener('click', bookTrip);
+
+  // download & view bookings
+  document.getElementById('downloadBtn').addEventListener('click', downloadBookings);
+  document.getElementById('viewBookingsBtn').addEventListener('click', ()=>{ renderBookingsModal(); document.getElementById('bookingsModal').style.display='flex'; });
+  document.getElementById('closeBookingsModal').addEventListener('click', ()=>{ document.getElementById('bookingsModal').style.display='none'; });
+  document.getElementById('downloadInModal').addEventListener('click', downloadBookings);
+
+  // tabs switching
+  Array.from(document.querySelectorAll('#bookingTabs .tab')).forEach(tab=>{ tab.addEventListener('click', ()=>{ Array.from(document.querySelectorAll('#bookingTabs .tab')).forEach(t=>t.classList.remove('active')); tab.classList.add('active'); // example: change package options based on tab
+      const sel=document.getElementById('package'); sel.innerHTML=''; if(tab.dataset.tab==='trips'){ ['Himalayan Power Trek','Zen Beach Yoga','European Cycle Tour'].forEach(s=>{ const o=document.createElement('option'); o.textContent=s; sel.appendChild(o); }); }
+      if(tab.dataset.tab==='retreats'){ ['Detox Retreat','Spa Weekender','Forest Silence'].forEach(s=>{ const o=document.createElement('option'); o.textContent=s; sel.appendChild(o); }); }
+      if(tab.dataset.tab==='coaching'){ ['1-on-1 Coaching','Team Bootcamp','Remote Plan'].forEach(s=>{ const o=document.createElement('option'); o.textContent=s; sel.appendChild(o); }); }
+  })});
+
+  // booking modal keyboard accessibility
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ document.getElementById('lightbox').style.display='none'; document.getElementById('bookingsModal').style.display='none'; } });
+
+  // hook tracker buttons
+  document.getElementById('saveLogBtn').addEventListener('click', addLog);
+  document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+
+  // initial render
+  renderJourneys(); populateTripSelect(); loadLogs(); document.getElementById('year').textContent = new Date().getFullYear();
+
+  // expose some helpers for debugging in console
+  window.ft = {downloadBookings, getBookings};
+</script>
+</body>
+</html>
